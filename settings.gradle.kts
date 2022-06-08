@@ -17,11 +17,11 @@ buildscript {
 }
 
 plugins {
-    id("com.gradle.enterprise") version("3.10.1")
+    id("com.gradle.enterprise") version ("3.10.1")
 }
 
 if (gradle.startParameter.taskNames.none { it.contains("publishToMavenLocal") }) {
     apply(plugin = "bilibili-poc-plugin")
 }
 rootProject.name = "bilibili-poc"
-include("app", "monitor-plugin")
+include("monitor-plugin")

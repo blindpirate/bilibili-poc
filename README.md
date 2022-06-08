@@ -5,7 +5,7 @@ WARNING: this is NOT recommended in production code.
 ## Explanation
 
 If there is already a `BuildOperationNotificationListener` applied, replace it with `CompositeBuildOperationNotificationListener`
-via reflection.
+via reflection. See the code here: https://github.com/blindpirate/bilibili-poc/blob/main/monitor-plugin/src/main/java/bilibili/poc/MonitorPlugin.java
 
 ## Steps
 

@@ -21,13 +21,9 @@ public class MonitorPlugin implements Plugin<Settings> {
             if (settings instanceof DefaultSettings) {
                 BuildOperationNotificationListenerRegistrar registrar = ((GradleInternal) settings.getGradle()).getServices().get(BuildOperationNotificationListenerRegistrar.class);
                 if (registrar.getClass().getSimpleName().equals("BuildOperationNotificationBridge")) {
-                    Field stateField = registrar.getClass().getDeclaredField("state");
-                    stateField.setAccessible(true);
-                    Object state = stateField.get(registrar);
+                    Object state = getFieldViaReflection(registrar, "state");
 
-                    Field notificationListenerField = state.getClass().getDeclaredField("notificationListener");
-                    notificationListenerField.setAccessible(true);
-                    BuildOperationNotificationListener existingListener = (BuildOperationNotificationListener) notificationListenerField.get(state);
+                    BuildOperationNotificationListener existingListener = (BuildOperationNotificationListener) getFieldViaReflection(state, "notificationListener");
 
                     if (existingListener != null) {
                         System.out.println("Replace existing " + existingListener + " to composite listener!");
@@ -36,16 +32,13 @@ public class MonitorPlugin implements Plugin<Settings> {
                             existingListener, new MonitorBuildOperationNotificationListener());
 
                         // Replace BuildOperationNotificationBridge.state.notificationListener
-                        notificationListenerField.set(state, compositeListener);
+                        // https://github.com/gradle/gradle/blob/fe98989182eddc66d20ee7fea82c1532287d5090/subprojects/core/src/main/java/org/gradle/internal/operations/notify/BuildOperationNotificationBridge.java#L56
+                        setFieldViaReflection(state, "notificationListener", compositeListener);
 
-                        Field replayAndAttachListenerField = state.getClass().getDeclaredField("replayAndAttachListener");
-                        replayAndAttachListenerField.setAccessible(true);
-                        Object replayAndAttachListener = replayAndAttachListenerField.get(state);
-
-                        Field listenerFieldInReplayAndAttachListener = replayAndAttachListener.getClass().getDeclaredField("listener");
-                        listenerFieldInReplayAndAttachListener.setAccessible(true);
+                        Object replayAndAttachListener = getFieldViaReflection(state, "replayAndAttachListener");
                         // Replace BuildOperationNotificationBridge.state.replayAndAttachListener.listener
-                        listenerFieldInReplayAndAttachListener.set(replayAndAttachListener, compositeListener);
+                        // https://github.com/gradle/gradle/blob/fe98989182eddc66d20ee7fea82c1532287d5090/subprojects/core/src/main/java/org/gradle/internal/operations/notify/BuildOperationNotificationBridge.java#L260
+                        setFieldViaReflection(replayAndAttachListener, "listener", compositeListener);
 
                         System.out.println("Finished replacing existing " + existingListener + " to composite listener!");
                     }
@@ -56,6 +49,18 @@ public class MonitorPlugin implements Plugin<Settings> {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private Object getFieldViaReflection(Object obj, String fieldName) throws Exception {
+        Field field = obj.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return field.get(obj);
+    }
+
+    private void setFieldViaReflection(Object obj, String fieldName, Object target) throws Exception {
+        Field field = obj.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(obj, target);
     }
 
     public static class CompositeBuildOperationNotificationListener implements BuildOperationNotificationListener {

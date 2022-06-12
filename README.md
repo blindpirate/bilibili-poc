@@ -4,7 +4,7 @@ WARNING: this is NOT recommended in production code.
 
 ## Explanation
 
-See the comments on `MonitorPlugin.registerHackyListener()`. In short, instead of registering a `BuildOperationNotificationListener`,
+See [the comments on `MonitorPlugin.registerHackyListener()`](https://github.com/blindpirate/bilibili-poc/blob/main/monitor-plugin/src/main/java/bilibili/poc/MonitorPlugin.java#L38). In short, instead of registering a `BuildOperationNotificationListener`,
 we register a `BuildOperationListener` and convert "build operation" to "build operation notification" by ourselves.
 
 ## Steps

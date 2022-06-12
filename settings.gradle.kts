@@ -6,22 +6,22 @@
  * Detailed information about configuring a multi-project build in Gradle can be found
  * in the user manual at https://docs.gradle.org/7.4.2/userguide/multi_project_builds.html
  */
-buildscript {
+pluginManagement {
     repositories {
         mavenLocal()
-    }
-
-    dependencies {
-        classpath("bilibili:poc:1.0")
+        gradlePluginPortal()
     }
 }
+
 
 plugins {
-    id("com.gradle.enterprise") version ("3.10.1")
+    if (System.getProperty("publishToMavenLocal") == null) {
+        id("bilibili-poc-plugin") version ("1.0")
+    }
+    if (System.getProperty("noGradleEnterprise") == null) {
+        id("com.gradle.enterprise") version ("3.10.1")
+    }
 }
 
-if (gradle.startParameter.taskNames.none { it.contains("publishToMavenLocal") }) {
-    apply(plugin = "bilibili-poc-plugin")
-}
 rootProject.name = "bilibili-poc"
 include("monitor-plugin")
